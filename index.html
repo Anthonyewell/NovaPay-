@@ -1,0 +1,43 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>NovaPay Sandbox v3</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#07111f;color:#f5f7fb;font-family:Inter,system-ui,sans-serif}.wrap{max-width:1100px;margin:auto;padding:24px}.top{display:flex;justify-content:space-between;align-items:center}.brand{font-size:25px;font-weight:850}.badge{font-size:11px;border:1px solid #51439a;background:#191533;color:#cfc5ff;border-radius:99px;padding:7px 10px}.hero{margin-top:22px;padding:28px;border-radius:24px;border:1px solid #30415d;background:linear-gradient(135deg,#16253e,#281d50)}.muted{color:#91a3bb;font-size:13px}.balance{font-size:44px;font-weight:850;margin:5px 0 17px}.btn{border:0;border-radius:11px;padding:11px 15px;font-weight:750;cursor:pointer}.primary{background:#7657ff;color:#fff}.ghost{background:#17263d;color:#fff;border:1px solid #31445f}.grid{display:grid;grid-template-columns:1.1fr .9fr;gap:17px;margin-top:17px}.card{background:#0e1b2d;border:1px solid #20324b;border-radius:20px;padding:19px}.card h2{font-size:17px;margin:0 0 14px}.methods{display:grid;grid-template-columns:1fr 1fr;gap:11px}.method{padding:15px;border-radius:14px;background:#091627;border:1px solid #20324b;cursor:pointer}.method:hover{border-color:#7657ff}.method strong{display:block;margin-bottom:5px}.method span{font-size:12px;color:#91a3bb}.row{display:flex;justify-content:space-between;gap:10px;padding:12px 0;border-bottom:1px solid #20324b;font-size:13px}.row:last-child{border:0}.green{color:#35d07f}.yellow{color:#ffbf69}.notice{margin-top:13px;padding:11px;border-radius:11px;background:#101e33;border:1px solid #263b59;color:#91a3bb;font-size:12px}.modal{position:fixed;inset:0;background:#000b;display:none;align-items:center;justify-content:center;padding:18px}.modal.open{display:flex}.box{width:min(550px,100%);background:#0e1b2d;border:1px solid #334865;border-radius:22px;padding:22px}.input{width:100%;padding:12px;border:1px solid #334865;background:#081423;color:#fff;border-radius:10px;margin:7px 0 13px}.actions{display:flex;justify-content:flex-end;gap:9px}.success{color:#63e6a0}.error{color:#ff8f8f}footer{text-align:center;color:#6f829b;font-size:11px;margin:23px 0}@media(max-width:760px){.grid,.methods{grid-template-columns:1fr}.balance{font-size:36px}}
+</style></head>
+<body><div class="wrap">
+<div class="top"><div class="brand">NovaPay</div><div class="badge">SANDBOX • NO REAL MONEY</div></div>
+<section class="hero"><div class="muted">Available test balance</div><div class="balance">$480,000.00</div><button class="btn primary" onclick="openModal('withdraw')">Create test withdrawal</button><div class="notice">Fictional balance and test identity. No live banking credentials are requested.</div></section>
+<div class="grid">
+<section class="card"><h2>Verification process</h2>
+<div class="row"><span>1. Account authentication</span><span class="green">READY</span></div>
+<div class="row"><span>2. Email verification</span><span class="green">TEST VERIFIED</span></div>
+<div class="row"><span>3. Identity verification</span><span class="green">TEST VERIFIED</span></div>
+<div class="row"><span>4. Destination ownership</span><span class="green">TEST VERIFIED</span></div>
+<div class="row"><span>5. Risk review</span><span class="yellow">SANDBOX</span></div>
+<div class="row"><span>6. Withdrawal approval</span><span class="green">ENABLED</span></div>
+</section>
+<section class="card"><h2>Provider connections</h2><div class="methods">
+<div class="method" onclick="window.open('https://www.sandbox.paypal.com/','_blank','noopener')"><strong>PayPal Sandbox</strong><span>Official sandbox sign-in</span></div>
+<div class="method" onclick="alert('Bitcoin test adapter: no live wallet or private key.')"><strong>Bitcoin Test Rail</strong><span>Local test adapter</span></div>
+<div class="method" onclick="alert('Bank test adapter: connect an authorized provider for a real sandbox.')"><strong>Chime / Bank Test</strong><span>Authorized-provider slot</span></div>
+<div class="method" onclick="alert('Bank test adapter: connect an authorized provider for a real sandbox.')"><strong>Wells Fargo / Bank Test</strong><span>Authorized-provider slot</span></div>
+</div></section></div>
+<section class="card" style="margin-top:17px"><h2>Audit activity</h2><div id="activity"><div class="row"><span>Sandbox initialized</span><span>OK</span></div></div></section>
+<footer>NovaPay is an independent sandbox application and is not a bank, broker, wallet, or financial institution.</footer>
+</div>
+
+<div class="modal" id="modal"><div class="box"><h2 id="modalTitle">Create test withdrawal</h2><div class="muted">A test record is created. PayPal can optionally receive a sandbox payout if your own sandbox credentials are configured on the server.</div>
+<label class="muted">Amount (USD)</label><input class="input" id="amount" type="number" min="1" max="20000" value="100">
+<label class="muted">Destination</label><select class="input" id="dest"><option value="paypal">PayPal Sandbox</option><option value="bitcoin">Bitcoin Test Rail</option><option value="chime">Chime / Bank Test Rail</option><option value="wells">Wells Fargo / Bank Test Rail</option></select>
+<label class="muted">Test destination identifier</label><input class="input" id="identifier" placeholder="PayPal sandbox email for PayPal">
+<label class="muted"><input type="checkbox" id="sendpaypal"> Send through PayPal Sandbox</label>
+<div class="actions"><button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn primary" onclick="submitWithdrawal()">Submit test request</button></div><div id="result"></div></div></div>
+
+<script>
+const api='http://127.0.0.1:8000';
+function openModal(){modal.classList.add('open')}function closeModal(){modal.classList.remove('open')}
+async function submitWithdrawal(){
+ result.innerHTML='<div class="notice">Submitting…</div>';
+ try{let r=await fetch(api+'/api/withdrawals',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({amount:Number(amount.value),destination:dest.value,identifier:identifier.value||'test-destination',send_to_paypal:sendpaypal.checked})});let d=await r.json();if(!r.ok)throw Error(d.detail||'Request failed');result.innerHTML='<div class="notice success"><b>Created:</b> '+d.id+'<br>Status: '+d.status+(d.paypal_batch_id?'<br>PayPal batch: '+d.paypal_batch_id:'')+'</div>';loadActivity()}catch(e){result.innerHTML='<div class="notice error">'+e.message+'</div>'}}
+async function loadActivity(){try{let r=await fetch(api+'/api/audit');let d=await r.json();activity.innerHTML=d.items.map(x=>'<div class="row"><span>'+x.action+'</span><span>'+x.status+'</span></div>').join('')}catch(e){}}
+loadActivity();
+</script></body></html>
